@@ -3,648 +3,975 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Practical Manager</title>
+    <title>CodePractical Pro - AI Document Processing</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f5f7fa;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             color: #333;
         }
+
         .container {
-            max-width: 1200px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 20px;
         }
-        header {
-            background-color: #1a56db;
-            color: white;
-            padding: 20px 0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: 1px solid transparent;
-            border-bottom: none;
-            border-radius: 4px 4px 0 0;
-            margin-right: 5px;
-            background-color: #f0f0f0;
-        }
-        .tab.active {
-            background-color: white;
-            border-color: #ddd;
-            border-bottom-color: white;
-            margin-bottom: -1px;
-            font-weight: bold;
-            color: #1a56db;
-        }
-        .tab-content {
-            display: none;
-            background-color: white;
-            padding: 20px;
-            border-radius: 0 0 4px 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .upload-section {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .upload-box {
-            flex: 1;
-            padding: 20px;
-            border: 2px dashed #ddd;
-            border-radius: 8px;
+
+        .header {
             text-align: center;
-            background-color: #f9f9f9;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .panel-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #5a67d8;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed #cbd5e0;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
             transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+            position: relative;
+            background: linear-gradient(45deg, #f8f9ff, #fff);
         }
-        .upload-box:hover {
-            border-color: #1a56db;
-            background-color: #f0f5ff;
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #5a67d8;
+            background: linear-gradient(45deg, #eef2ff, #f8f9ff);
+            transform: translateY(-2px);
         }
-        .upload-box h3 {
-            margin-top: 0;
-            color: #1a56db;
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #9ca3af;
+            margin-bottom: 15px;
         }
-        .upload-box img {
-            width: 48px;
-            height: 48px;
+
+        .upload-area.dragover .upload-icon {
+            color: #5a67d8;
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 60%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            80% { transform: translateY(-5px); }
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #6b7280;
             margin-bottom: 10px;
         }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+
         .file-input {
             display: none;
         }
-        .upload-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #1a56db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: background-color 0.3s ease;
+
+        .file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
         }
-        .upload-btn:hover {
-            background-color: #1e429f;
-        }
-        .file-info {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #666;
-        }
-        .match-section {
-            margin-top: 30px;
-        }
-        .match-btn {
-            padding: 12px 24px;
-            background-color: #10b981;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
-            display: block;
-            margin: 0 auto;
-        }
-        .match-btn:hover {
-            background-color: #059669;
-        }
-        .match-btn:disabled {
-            background-color: #9ca3af;
-            cursor: not-allowed;
-        }
-        .results-section {
-            margin-top: 30px;
-        }
-        .practical-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .practical-header {
-            background-color: #1a56db;
-            color: white;
-            padding: 15px 20px;
-            font-weight: bold;
+
+        .file-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #10b981;
         }
-        .practical-body {
-            padding: 20px;
+
+        .file-name {
+            font-weight: 500;
+            color: #374151;
         }
-        .practical-aim {
-            margin-bottom: 15px;
-            font-weight: bold;
+
+        .file-size {
+            font-size: 0.8rem;
+            color: #6b7280;
         }
-        .code-block {
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 15px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            overflow-x: auto;
-        }
-        .output-block {
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 15px;
-            font-family: monospace;
-            white-space: pre-wrap;
-        }
-        .confidence-badge {
-            background-color: #10b981;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-        }
-        .export-options {
-            margin-top: 20px;
-            text-align: center;
-        }
-        .export-btn {
-            padding: 10px 20px;
-            background-color: #6366f1;
+
+        .remove-file {
+            background: #ef4444;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
             cursor: pointer;
-            font-weight: bold;
-            margin: 0 10px;
-            transition: background-color 0.3s ease;
+            font-size: 14px;
         }
-        .export-btn:hover {
-            background-color: #4f46e5;
-        }
-        .status-message {
-            text-align: center;
+
+        .process-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
             padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            margin-top: 15px;
         }
-        .status-success {
-            background-color: #d1fae5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
+
+        .process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
         }
-        .status-error {
-            background-color: #fee2e2;
-            color: #b91c1c;
-            border: 1px solid #fecaca;
+
+        .process-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
-        .status-info {
-            background-color: #e0f2fe;
-            color: #0369a1;
-            border: 1px solid #bae6fd;
-        }
-        .loading {
+
+        .processing-indicator {
             display: none;
             text-align: center;
             padding: 20px;
+            color: #5a67d8;
         }
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1a56db;
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #5a67d8;
             border-radius: 50%;
             width: 30px;
             height: 30px;
-            animation: spin 2s linear infinite;
+            animation: spin 1s linear infinite;
             margin: 0 auto 10px;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .format-options {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9fafb;
-            border-radius: 4px;
-            border: 1px solid #e5e7eb;
+
+        .results-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
         }
-        .format-options h3 {
-            margin-top: 0;
+
+        .practical-match {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border: 2px solid #0ea5e9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .practical-match:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.2);
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
             margin-bottom: 15px;
         }
-        .format-row {
-            display: flex;
+
+        .practical-number {
+            background: #0ea5e9;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .confidence-score {
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        .aim-preview {
+            font-style: italic;
+            color: #374151;
             margin-bottom: 10px;
-            align-items: center;
+            line-height: 1.5;
         }
-        .format-label {
-            width: 120px;
+
+        .code-preview {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .format-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9ff, #fff);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .format-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .format-group label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .format-group select, .format-group input {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: border-color 0.3s ease;
+        }
+
+        .format-group select:focus, .format-group input:focus {
+            outline: none;
+            border-color: #5a67d8;
+        }
+
+        .output-panel {
+            grid-column: span 3;
+            min-height: 500px;
+        }
+
+        .output-preview {
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            background: white;
+            min-height: 450px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .output-content {
+            padding: 40px;
+            font-family: 'Times New Roman', serif;
+            line-height: 1.8;
+        }
+
+        .practical-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #333;
+            padding-bottom: 20px;
+        }
+
+        .practical-title {
             font-weight: bold;
+            margin-bottom: 15px;
         }
-        .format-input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+
+        .practical-aim {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .code-section {
+            margin-bottom: 25px;
+        }
+
+        .language-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .code-block {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            margin: 15px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .output-section {
+            margin-top: 25px;
+        }
+
+        .download-options {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .download-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .download-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .stats-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .output-panel {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .output-panel {
+                grid-column: span 1;
+            }
+            .format-controls {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <h1>Code Practical Manager</h1>
-        </div>
-    </header>
-
     <div class="container">
-        <div class="tabs">
-            <div class="tab active" data-tab="upload">Upload Documents</div>
-            <div class="tab" data-tab="match">Match & Generate</div>
-            <div class="tab" data-tab="results">Results</div>
+        <div class="header">
+            <h1>🚀 CodePractical Pro</h1>
+            <p>AI-Powered Document Processing & Smart Code Matching</p>
         </div>
 
-        <div id="upload" class="tab-content active">
-            <div class="upload-section">
-                <div class="upload-box" id="aims-upload">
-                    <img src="/globe.svg" alt="Aims Icon">
-                    <h3>Aims Document</h3>
-                    <p>Upload a document containing practical aims</p>
-                    <input type="file" id="aims-file" class="file-input" accept=".pdf,.doc,.docx">
-                    <button class="upload-btn" onclick="document.getElementById('aims-file').click()">Select File</button>
-                    <div class="file-info" id="aims-file-info">No file selected</div>
+        <div class="main-grid">
+            <!-- Aims Upload Panel -->
+            <div class="panel">
+                <h2 class="panel-title">📋 Upload Aims Document</h2>
+                <div class="upload-area" onclick="document.getElementById('aimsFile').click()" ondrop="handleDrop(event, 'aims')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Drop your aims document here</div>
+                    <div class="upload-hint">PDF or Word document with all practical aims</div>
                 </div>
-
-                <div class="upload-box" id="code-upload">
-                    <img src="/file.svg" alt="Code Icon">
-                    <h3>Code Document</h3>
-                    <p>Upload a document containing code examples</p>
-                    <input type="file" id="code-file" class="file-input" accept=".pdf,.doc,.docx">
-                    <button class="upload-btn" onclick="document.getElementById('code-file').click()">Select File</button>
-                    <div class="file-info" id="code-file-info">No file selected</div>
+                <input type="file" id="aimsFile" class="file-input" accept=".pdf,.doc,.docx" onchange="handleFileSelect(event, 'aims')">
+                <div id="aimsFileList" class="file-list"></div>
+                <button class="process-btn" id="processAims" onclick="processAimsDocument()" disabled>🔍 Extract Aims</button>
+                <div id="aimsProcessing" class="processing-indicator">
+                    <div class="spinner"></div>
+                    Processing aims document...
                 </div>
+                <div id="aimsResults" class="results-container"></div>
             </div>
 
-            <div id="upload-status" class="status-message" style="display: none;"></div>
+            <!-- Code Upload Panel -->
+            <div class="panel">
+                <h2 class="panel-title">💻 Upload Code Document</h2>
+                <div class="upload-area" onclick="document.getElementById('codeFile').click()" ondrop="handleDrop(event, 'code')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-icon">⚡</div>
+                    <div class="upload-text">Drop your code document here</div>
+                    <div class="upload-hint">PDF or Word document with all code snippets</div>
+                </div>
+                <input type="file" id="codeFile" class="file-input" accept=".pdf,.doc,.docx" onchange="handleFileSelect(event, 'code')">
+                <div id="codeFileList" class="file-list"></div>
+                <button class="process-btn" id="processCode" onclick="processCodeDocument()" disabled>⚙️ Extract Code</button>
+                <div id="codeProcessing" class="processing-indicator">
+                    <div class="spinner"></div>
+                    Processing code document...
+                </div>
+                <div id="codeResults" class="results-container"></div>
+            </div>
 
-            <div class="loading" id="upload-loading">
-                <div class="loading-spinner"></div>
-                <p>Processing document...</p>
+            <!-- Format Template Panel -->
+            <div class="panel">
+                <h2 class="panel-title">🎨 Upload Format Template</h2>
+                <div class="upload-area" onclick="document.getElementById('templateFile').click()" ondrop="handleDrop(event, 'template')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-icon">📐</div>
+                    <div class="upload-text">Drop format template here</div>
+                    <div class="upload-hint">PDF or Word with desired formatting style</div>
+                </div>
+                <input type="file" id="templateFile" class="file-input" accept=".pdf,.doc,.docx" onchange="handleFileSelect(event, 'template')">
+                <div id="templateFileList" class="file-list"></div>
+                
+                <div class="format-controls">
+                    <div class="format-group">
+                        <label>Title Font</label>
+                        <select id="titleFont">
+                            <option value="Times New Roman" selected>Times New Roman</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                            <option value="Georgia">Georgia</option>
+                        </select>
+                    </div>
+                    <div class="format-group">
+                        <label>Title Size</label>
+                        <input type="number" id="titleSize" value="18" min="12" max="28">
+                    </div>
+                    <div class="format-group">
+                        <label>Content Font</label>
+                        <select id="contentFont">
+                            <option value="Times New Roman" selected>Times New Roman</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                    </div>
+                    <div class="format-group">
+                        <label>Content Size</label>
+                        <input type="number" id="contentSize" value="14" min="10" max="20">
+                    </div>
+                    <div class="format-group">
+                        <label>Code Font</label>
+                        <select id="codeFont">
+                            <option value="Courier New" selected>Courier New</option>
+                            <option value="Monaco">Monaco</option>
+                            <option value="Consolas">Consolas</option>
+                        </select>
+                    </div>
+                    <div class="format-group">
+                        <label>Code Size</label>
+                        <input type="number" id="codeSize" value="12" min="8" max="16">
+                    </div>
+                </div>
+
+                <button class="process-btn" onclick="matchAndGenerate()" id="generateBtn" disabled>🎯 Smart Match & Generate</button>
+            </div>
+
+            <!-- Output Panel -->
+            <div class="panel output-panel">
+                <h2 class="panel-title">📊 Generated Practical Reports</h2>
+                <div class="output-preview">
+                    <div class="download-options">
+                        <button class="download-btn" onclick="downloadAllPDF()">📥 Download All PDF</button>
+                        <button class="download-btn" onclick="downloadAllWord()">📄 Download All Word</button>
+                    </div>
+                    <div id="outputContent" class="output-content">
+                        <div class="empty-state">
+                            <div class="empty-icon">🎯</div>
+                            <h3>AI-Powered Smart Matching</h3>
+                            <p>Upload your aims and code documents to automatically match and generate formatted practical reports</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div id="match" class="tab-content">
-            <div class="format-options">
-                <h3>Formatting Options</h3>
-                <div class="format-row">
-                    <div class="format-label">Title Font:</div>
-                    <select class="format-input" id="title-font">
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Arial">Arial</option>
-                        <option value="Calibri">Calibri</option>
-                    </select>
+        <div class="stats-panel">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="extractedAims">0</div>
+                    <div class="stat-label">Aims Extracted</div>
                 </div>
-                <div class="format-row">
-                    <div class="format-label">Title Size:</div>
-                    <input type="number" class="format-input" id="title-size" value="18" min="12" max="24">
+                <div class="stat-card">
+                    <div class="stat-number" id="extractedCode">0</div>
+                    <div class="stat-label">Code Blocks Found</div>
                 </div>
-                <div class="format-row">
-                    <div class="format-label">Content Font:</div>
-                    <select class="format-input" id="content-font">
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Arial">Arial</option>
-                        <option value="Calibri">Calibri</option>
-                    </select>
+                <div class="stat-card">
+                    <div class="stat-number" id="matchedPracticals">0</div>
+                    <div class="stat-label">Practicals Matched</div>
                 </div>
-                <div class="format-row">
-                    <div class="format-label">Content Size:</div>
-                    <input type="number" class="format-input" id="content-size" value="14" min="10" max="18">
+                <div class="stat-card">
+                    <div class="stat-number" id="accuracyScore">0%</div>
+                    <div class="stat-label">Matching Accuracy</div>
                 </div>
-                <div class="format-row">
-                    <div class="format-label">Code Font:</div>
-                    <select class="format-input" id="code-font">
-                        <option value="Courier New">Courier New</option>
-                        <option value="Consolas">Consolas</option>
-                        <option value="Monaco">Monaco</option>
-                    </select>
-                </div>
-                <div class="format-row">
-                    <div class="format-label">Code Size:</div>
-                    <input type="number" class="format-input" id="code-size" value="12" min="10" max="16">
-                </div>
-            </div>
-
-            <div class="match-section">
-                <button id="match-btn" class="match-btn" disabled>Match Aims with Code & Generate Report</button>
-            </div>
-
-            <div id="match-status" class="status-message" style="display: none;"></div>
-
-            <div class="loading" id="match-loading">
-                <div class="loading-spinner"></div>
-                <p>Matching and generating report...</p>
-            </div>
-        </div>
-
-        <div id="results" class="tab-content">
-            <div id="results-container"></div>
-
-            <div class="export-options">
-                <button id="export-html" class="export-btn">Export as HTML</button>
-                <button id="export-pdf" class="export-btn">Export as PDF</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Global variables to store processed data
-        let aimsData = null;
-        let codeData = null;
-        let matchedResults = null;
+        // Global storage for extracted data
+        let extractedAims = [];
+        let extractedCode = [];
+        let matchedPracticals = [];
 
-        // Tab switching functionality
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all tabs and content
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                // Add active class to clicked tab and corresponding content
-                tab.classList.add('active');
-                document.getElementById(tab.dataset.tab).classList.add('active');
-            });
-        });
+        // File handling functions
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
 
-        // File input change handlers
-        document.getElementById('aims-file').addEventListener('change', function(e) {
-            handleFileSelect(e, 'aims');
-        });
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
 
-        document.getElementById('code-file').addEventListener('change', function(e) {
-            handleFileSelect(e, 'code');
-        });
+        function handleDrop(e, type) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0], type);
+            }
+        }
 
-        // Match button click handler
-        document.getElementById('match-btn').addEventListener('click', matchAndGenerate);
+        function handleFileSelect(e, type) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file, type);
+            }
+        }
 
-        // Export buttons click handlers
-        document.getElementById('export-html').addEventListener('click', () => exportResults('html'));
-        document.getElementById('export-pdf').addEventListener('click', () => exportResults('pdf'));
+        function handleFileUpload(file, type) {
+            const fileList = document.getElementById(`${type}FileList`);
+            const processBtn = document.getElementById(type === 'aims' ? 'processAims' : 'processCode');
+            
+            // Clear previous files
+            fileList.innerHTML = '';
+            
+            // Create file item
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                </div>
+                <button class="remove-file" onclick="removeFile('${type}')">&times;</button>
+            `;
+            
+            fileList.appendChild(fileItem);
+            processBtn.disabled = false;
+            
+            // Store file for processing
+            window[`${type}File`] = file;
+        }
 
-        // Handle file selection and upload
-        function handleFileSelect(event, type) {
-            const file = event.target.files[0];
+        function removeFile(type) {
+            document.getElementById(`${type}FileList`).innerHTML = '';
+            document.getElementById(type === 'aims' ? 'processAims' : 'processCode').disabled = true;
+            window[`${type}File`] = null;
+        }
+
+        // Document processing functions
+        async function processAimsDocument() {
+            const file = window.aimsFile;
             if (!file) return;
 
-            const fileInfo = document.getElementById(`${type}-file-info`);
-            fileInfo.textContent = `${file.name} (${formatFileSize(file.size)})`;
-
-            // Upload the file
-            uploadFile(file, type);
-        }
-
-        // Format file size
-        function formatFileSize(bytes) {
-            if (bytes < 1024) return bytes + ' bytes';
-            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-            else return (bytes / 1048576).toFixed(1) + ' MB';
-        }
-
-        // Upload file to server
-        async function uploadFile(file, type) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('type', type);
-
-            // Show loading indicator
-            document.getElementById('upload-loading').style.display = 'block';
-            document.getElementById('upload-status').style.display = 'none';
+            const processing = document.getElementById('aimsProcessing');
+            const results = document.getElementById('aimsResults');
+            
+            processing.style.display = 'block';
+            results.innerHTML = '';
 
             try {
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    // Process the uploaded file
-                    processFile(data.files.file, type);
+                let text = '';
+                if (file.type.includes('pdf')) {
+                    text = await extractTextFromPDF(file);
                 } else {
-                    showStatus('upload', 'error', `Upload failed: ${data.error}`);
+                    text = await extractTextFromWord(file);
                 }
+
+                const aims = extractAimsFromText(text);
+                extractedAims = aims;
+                
+                displayAims(aims);
+                updateStats();
+                
             } catch (error) {
-                showStatus('upload', 'error', `Upload error: ${error.message}`);
+                results.innerHTML = `<div style="color: #ef4444; padding: 20px;">Error processing file: ${error.message}</div>`;
             } finally {
-                document.getElementById('upload-loading').style.display = 'none';
+                processing.style.display = 'none';
             }
         }
 
-        // Process uploaded file
-        async function processFile(fileData, type) {
-            try {
-                const endpoint = type === 'aims' ? '/api/process-aims' : '/api/process-code';
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ fileId: fileData.filename })
-                });
+        async function processCodeDocument() {
+            const file = window.codeFile;
+            if (!file) return;
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    if (type === 'aims') {
-                        aimsData = data.aims;
-                        showStatus('upload', 'success', `Aims document processed successfully. Found ${data.totalAims} aims.`);
-                    } else {
-                        codeData = data.codeBlocks;
-                        showStatus('upload', 'success', `Code document processed successfully. Found ${data.totalBlocks} code blocks.`);
-                    }
-
-                    // Enable match button if both files are processed
-                    if (aimsData && codeData) {
-                        document.getElementById('match-btn').disabled = false;
-                    }
-                } else {
-                    showStatus('upload', 'error', `Processing failed: ${data.error}`);
-                }
-            } catch (error) {
-                showStatus('upload', 'error', `Processing error: ${error.message}`);
-            }
-        }
-
-        // Match aims with code and generate report
-        async function matchAndGenerate() {
-            if (!aimsData || !codeData) {
-                showStatus('match', 'error', 'Please upload and process both aims and code documents first.');
-                return;
-            }
-
-            // Get formatting options
-            const formatOptions = {
-                titleFont: document.getElementById('title-font').value,
-                titleSize: document.getElementById('title-size').value,
-                contentFont: document.getElementById('content-font').value,
-                contentSize: document.getElementById('content-size').value,
-                codeFont: document.getElementById('code-font').value,
-                codeSize: document.getElementById('code-size').value
-            };
-
-            // Show loading indicator
-            document.getElementById('match-loading').style.display = 'block';
-            document.getElementById('match-status').style.display = 'none';
+            const processing = document.getElementById('codeProcessing');
+            const results = document.getElementById('codeResults');
+            
+            processing.style.display = 'block';
+            results.innerHTML = '';
 
             try {
-                const response = await fetch('/api/match-generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        aims: aimsData,
-                        codeBlocks: codeData,
-                        formatOptions: formatOptions
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    matchedResults = data.matchedPracticals;
-                    showStatus('match', 'success', `Successfully matched ${data.totalMatches} practicals with an average confidence of ${data.averageConfidence.toFixed(1)}%.`);
-                    
-                    // Display results
-                    displayResults(matchedResults);
-                    
-                    // Switch to results tab
-                    document.querySelector('.tab[data-tab="results"]').click();
+                let text = '';
+                if (file.type.includes('pdf')) {
+                    text = await extractTextFromPDF(file);
                 } else {
-                    showStatus('match', 'error', `Matching failed: ${data.error}`);
+                    text = await extractTextFromWord(file);
                 }
+
+                const code = extractCodeFromText(text);
+                extractedCode = code;
+                
+                displayCode(code);
+                updateStats();
+                
             } catch (error) {
-                showStatus('match', 'error', `Matching error: ${error.message}`);
+                results.innerHTML = `<div style="color: #ef4444; padding: 20px;">Error processing file: ${error.message}</div>`;
             } finally {
-                document.getElementById('match-loading').style.display = 'none';
+                processing.style.display = 'none';
             }
         }
 
-        // Display results
-        function displayResults(results) {
-            const container = document.getElementById('results-container');
-            container.innerHTML = '';
-
-            if (!results || results.length === 0) {
-                container.innerHTML = '<div class="status-message status-info">No matching results found.</div>';
-                return;
-            }
-
-            results.forEach(practical => {
-                const card = document.createElement('div');
-                card.className = 'practical-card';
-                card.innerHTML = `
-                    <div class="practical-header">
-                        <span>Practical ${practical.practicalNumber}</span>
-                        <span class="confidence-badge">${practical.confidence}% Match</span>
-                    </div>
-                    <div class="practical-body">
-                        <div class="practical-aim">
-                            <strong>Aim:</strong> ${practical.aim.text}
-                        </div>
-                        <div>
-                            <strong>Code (${practical.code.language}):</strong>
-                            <pre class="code-block">${practical.code.code}</pre>
-                        </div>
-                        <div>
-                            <strong>Output:</strong>
-                            <pre class="output-block">${practical.output}</pre>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
+        // Text extraction functions
+        async function extractTextFromWord(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mammoth.extractRawText({arrayBuffer: e.target.result})
+                        .then(result => resolve(result.value))
+                        .catch(reject);
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
             });
         }
 
-        // Export results
-        function exportResults(format) {
-            if (!matchedResults || matchedResults.length === 0) {
-                alert('No results to export. Please generate a report first.');
-                return;
+        async function extractTextFromPDF(file) {
+            // Simplified PDF text extraction (in real implementation, you'd use a proper PDF library)
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // This is a simplified version - real PDF extraction would be more complex
+                    const text = new TextDecoder().decode(e.target.result);
+                    resolve(text);
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        const languagePatterns = {
+            'python': [/def\s+\w+\(/, /import\s+\w+/, /print\s*\(/, /if\s+__name__\s*==\s*['"]+__main__['"]+/, /:\s*$/m, /^\s*#/m],
+            'java': [/public\s+class\s+\w+/, /public\s+static\s+void\s+main/, /System\.out\.print/, /import\s+java\./, /\/\*[\s\S]*?\*\//, /\/\//],
+            'cpp': [/#include\s*<.*>/, /using\s+namespace\s+std/, /cout\s*<</, /cin\s*>>/, /int\s+main\s*\(/, /\/\*[\s\S]*?\*\//, /\/\//],
+            'c': [/#include\s*<.*>/, /printf\s*\(/, /scanf\s*\(/, /int\s+main\s*\(/, /\/\*[\s\S]*?\*\//, /\/\//],
+            'javascript': [/function\s+\w+\(/, /console\.log\s*\(/, /var\s+\w+\s*=/, /let\s+\w+\s*=/, /const\s+\w+\s*=/, /\/\*[\s\S]*?\*\//, /\/\//],
+            'html': [/<html.*>/, /<head.*>/, /<body.*>/, /<div.*>/, /<script.*>/, /<!DOCTYPE/],
+            'css': [/\w+\s*{/, /:\s*\w+;/, /@media/, /\.[\w-]+\s*{/, /#[\w-]+\s*{/]
+        };
+
+        // Sample outputs for different languages
+        const sampleOutputs = {
+            'python': 'Python program executed successfully.\nResult: Operation completed\nOutput generated',
+            'java': 'Java program compiled and executed.\nCompilation successful\nExecution completed',
+            'cpp': 'C++ program compiled and executed.\nBuild successful\nProgram terminated normally',
+            'c': 'C program compiled and executed.\nCompilation successful\nExecution completed',
+            'javascript': 'JavaScript executed successfully.\nDOM manipulation completed\nEvent handlers attached',
+            'html': 'HTML page rendered successfully.\nAll elements loaded\nPage ready',
+            'css': 'CSS styles applied successfully.\nLayout rendered\nResponsive design active'
+        };
+
+        // File handling functions
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e, type) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0], type);
+            }
+        }
+
+        function handleFileSelect(e, type) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file, type);
+            }
+        }
+
+        function handleFileUpload(file, type) {
+            const fileList = document.getElementById(`${type}FileList`);
+            const processBtn = document.getElementById(type === 'aims' ? 'processAims' : 'processCode');
+            
+            // Clear previous files
+            fileList.innerHTML = '';
+            
+            // Create file item
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                </div>
+                <button class="remove-file" onclick="removeFile('${type}')">&times;</button>
+            `;
+            
+            fileList.appendChild(fileItem);
+            processBtn.disabled = false;
+            
+            // Store file for processing
+            window[`${type}File`] = file;
+        }
+
+        function removeFile(type) {
+            document.getElementById(`${type}FileList`).innerHTML = '';
+            document.getElementById(type === 'aims' ? 'processAims' : 'processCode').disabled = true;
+            window[`${type}File`] = null;
+        }
+
+        // Document processing functions
+        async function processAimsDocument() {
+            const file = window.aimsFile;
+            if (!file) return;
+
+            const processing = document.getElementById('aimsProcessing');
+            const results = document.getElementById('aimsResults');
+            
+            processing.style.display = 'block';
+            results.innerHTML = '';
+
+            try {
+                let text = '';
+                if (file.type.includes('pdf')) {
+                    text = await extractTextFromPDF(file);
+                } else {
+                    text = await extractTextFromWord(file);
+                }
+
+                const aims = extractAimsFromText(text);
+                extractedAims = aims;
+                
+                displayAims(aims);
+                updateStats();
+                
+            } catch (error) {
+                results.innerHTML = `<div style="color: #ef4444; padding: 20px;">Error processing file: ${error.message}</div>`;
+            } finally {
+                processing.style.display = 'none';
+            }
+        }
+
+        async function processCodeDocument() {
+            const file = window.codeFile;
+            if (!file) return;
+
+            const processing = document.getElementById('codeProcessing');
+            const results = document.getElementById('codeResults');
+            
+            processing.style.display = 'block';
+            results.innerHTML = '';
+
+            try {
+                let text = '';
+                if (file.type.includes('pdf')) {
+                    text = await extractTextFromPDF(file);
+                } else {
+                    text = await extractTextFromWord(file);
+                }
+
+                const code = extractCodeFromText(text);
+                extractedCode = code;
+                
+                displayCode(code);
+                updateStats();
+                
+            } catch (error) {
+                results.innerHTML = `<div style="color: #ef4444; padding: 20px;">Error processing file: ${error.message}</div>`;
+            } finally {
+                processing.style.display = 'none';
+            }
+        }
+
+        // Text extraction functions
+        async function extractTextFromWord(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mammoth.extractRawText({arrayBuffer: e.target.result})
+                        .then(result => resolve(result.value))
+                        .catch(reject);
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function extractTextFromPDF(file) {
+            // Simplified PDF text extraction (in real implementation, you'd use a proper PDF library)
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // This is a simplified version - real PDF extraction would be more complex
+                    const text = new TextDecoder().decode(e.target.result);
+                    resolve(text);
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // Content extraction functions
+        function extractAimsFromText(text) {
+            const aims = [];
+            const lines = text.split('\n');
+            let currentAim = '';
+            let practicalNumber = 1;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Look for aim indicators
+                if (line.toLowerCase().includes('aim') || 
+                    line.toLowerCase().includes('objective') || 
+                    line.toLowerCase().includes('practical')) {
+                    
+                    if (currentAim) {
+                        aims.push({
+                            id: practicalNumber++,
+                            text: currentAim.trim(),
+                            keywords: extractKeywords(currentAim)
+                        });
+                        currentAim = '';
+                    }
+                    
+                    currentAim = line;
+                } else if (currentAim && line) {
+                    currentAim += ' ' + line;
+                } else if (currentAim && !line) {
+                    aims.push({
+                        id: practicalNumber++,
+                        text: currentAim.trim(),
+                        keywords: extractKeywords(currentAim)
+                    });
+                    currentAim = '';
+                }
             }
 
-            // For HTML export, we can use the formatted HTML from the API
-            if (format === 'html') {
-                const htmlContent = matchedResults.map(practical => practical.formattedHtml).join('');
-                const blob = new Blob([`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Code Practical Report</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; margin: 40px; }
-                        </style>
-                    </head>
-                    <body>
-                        <h1 style="text-align: center; margin-bottom: 30px;">Code Practical Report</h1>
-                        ${htmlContent}
-                    </body>
-                    </html>
-                `], { type: 'text/html' });
-                downloadBlob(blob, 'code-practical-report.html');
-            } else if (format === 'pdf') {
-                // For PDF, we would typically send a request to the server to generate the PDF
-                // This is a placeholder - in a real implementation, you would call a server endpoint
-                alert('PDF export functionality would be implemented on the server side.');
-            }
-        }
-
-        // Download blob as file
-        function downloadBlob(blob, filename) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        // Show status message
-        function showStatus(section, type, message) {
-            const statusElement = document.getElementById(`${section}-status`);
-            statusElement.className = `status-message status-${type}`;
-            statusElement.textContent = message;
-            statusElement.style.display = 'block';
-        }
-    </script>
-</body>
-</html>
+            if (currentAim) {
+                aims.push({
+                    id: practicalNumber,
+                    text: currentAim.trim(),
+                    keywords: extract
