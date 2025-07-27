@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Test</h1>
+    
+    <div>
+        <h2>Test GET Request</h2>
+        <button id="testGet">Test GET /api/upload</button>
+        <div id="getResult"></div>
+    </div>
+
+    <div>
+        <h2>Test POST Request</h2>
+        <button id="testPost">Test POST /api/upload</button>
+        <div id="postResult"></div>
+    </div>
+
+    <div>
+        <h2>Test Health Endpoint</h2>
+        <button id="testHealth">Test GET /api/health</button>
+        <div id="healthResult"></div>
+    </div>
+
+    <script>
+        // Test GET request
+        document.getElementById('testGet').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('getResult');
+            resultDiv.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch('/api/upload');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <p>Status: ${response.status}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+
+        // Test POST request
+        document.getElementById('testPost').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('postResult');
+            resultDiv.innerHTML = 'Loading...';
+            
+            try {
+                // Create a simple FormData with minimal content
+                const formData = new FormData();
+                formData.append('test', 'value');
+                
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    data = { error: 'Could not parse JSON response' };
+                }
+                
+                resultDiv.innerHTML = `
+                    <p>Status: ${response.status}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+
+        // Test health endpoint
+        document.getElementById('testHealth').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('healthResult');
+            resultDiv.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <p>Status: ${response.status}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

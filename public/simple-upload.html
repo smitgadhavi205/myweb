@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple File Upload</title>
+</head>
+<body>
+    <h1>Simple File Upload Test</h1>
+    <form action="/api/upload" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="file">Select File:</label>
+            <input type="file" id="file" name="file" required>
+        </div>
+        <div>
+            <label for="type">File Type:</label>
+            <select id="type" name="type" required>
+                <option value="aims">Aims Document</option>
+                <option value="code">Code Document</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit">Upload</button>
+        </div>
+    </form>
+</body>
+</html>
